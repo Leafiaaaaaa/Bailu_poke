@@ -7,25 +7,23 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#AFDFE4">
     <style>
-        :root { --main-blue: #AFDFE4; --dark-blue: #7BB8C1; --bg: #F5FAFB; }
-        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--dark-blue); margin: 0; padding-bottom: 70px; }
+        :root { --main-blue: #AFDFE4; --dark-blue: #7BB8C1; --bg: #F5FAFB; --ssr-gold: linear-gradient(45deg, #ffd700, #fff5b1, #ffd700); --sr-purple: linear-gradient(45deg, #a29bfe, #ffffff, #a29bfe); }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--dark-blue); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
         
         /* 頁面切換 */
         .page { display: none; padding: 20px; flex-direction: column; align-items: center; }
-        .page.active { display: flex; }
+        .page.active { display: flex; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* 登入蓋板與說明區 */
-        #loginOverlay { position: fixed; inset: 0; background: var(--main-blue); display: flex; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 20px 0; }
+        #loginOverlay { position: fixed; inset: 0; background: var(--main-blue); display: flex; justify-content: center; align-items: center; z-index: 2000; overflow-y: auto; padding: 20px 0; }
         .login-container { display: flex; flex-direction: column; align-items: center; width: 90%; max-width: 350px; gap: 15px; }
         .login-box { background: white; padding: 25px; border-radius: 25px; text-align: center; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); box-sizing: border-box; }
         .login-box input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--main-blue); border-radius: 12px; box-sizing: border-box; outline: none; }
         .login-box button { background: var(--main-blue); color: white; border: none; padding: 12px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; }
         
-        /* 遊戲說明區 */
         .instruction-card { background: rgba(255, 255, 255, 0.9); padding: 15px 20px; border-radius: 20px; width: 100%; box-sizing: border-box; font-size: 0.85rem; line-height: 1.6; color: #555; border: 1px dashed white; }
         .instruction-card h3 { margin-top: 0; color: var(--dark-blue); font-size: 1rem; text-align: center; }
-        .instruction-card ul { padding-left: 20px; margin: 10px 0; }
-        .instruction-card li { margin-bottom: 5px; }
 
         /* 遊戲大廳樣式 */
         .user-card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 95%; max-width: 400px; text-align: center; margin-bottom: 20px; border: 1px solid var(--main-blue); box-sizing: border-box; }
@@ -34,19 +32,39 @@
         .tab { padding: 6px 12px; border: 1.5px solid var(--main-blue); border-radius: 20px; cursor: pointer; background: white; font-size: 0.8rem; color: var(--dark-blue); }
         .tab.active { background: var(--main-blue); color: white; }
         .box-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: white; padding: 15px; border-radius: 20px; border: 2px solid var(--main-blue); width: 100%; max-width: 360px; box-sizing: border-box; }
-        .slot { aspect-ratio: 1/1; background: var(--main-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; position: relative; }
-        .slot.poked { background: #E8F7F9; color: var(--dark-blue); cursor: not-allowed; border: 1px solid #ddd; }
+        .slot { aspect-ratio: 1/1; background: var(--main-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; position: relative; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1); }
+        .slot.poked { background: #E8F7F9; color: var(--dark-blue); cursor: not-allowed; border: 1px solid #ddd; box-shadow: none; }
         .prize-text { font-size: 0.7rem; display: none; text-align: center; padding: 4px; line-height: 1.2; }
         .slot.poked .prize-text { display: block; }
         .slot.poked .num { display: none; }
 
-        /* 我的紀錄 */
-        .record-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--main-blue); width: 100%; max-width: 400px; box-sizing: border-box; }
+        /* 抽卡中心樣式 */
+        .card-pack { width: 180px; height: 260px; background: var(--main-blue); border: 4px solid white; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; box-shadow: 0 10px 20px rgba(175, 223, 228, 0.5); cursor: pointer; transition: transform 0.2s; position: relative; margin: 30px 0; }
+        .card-pack:active { transform: scale(0.95); }
+        .card-pack::after { content: "點擊拆開"; position: absolute; bottom: 15px; background: white; color: var(--main-blue); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; }
+
+        /* 抽卡結果彈窗 */
+        #drawOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; }
+        .v-card { width: 260px; height: 400px; background: white; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; animation: cardPop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        @keyframes cardPop { from { transform: scale(0.5) translateY(100%); } to { transform: scale(1) translateY(0); } }
+
+        .v-card.ssr { border: 5px solid #ffd700; background: var(--ssr-gold); box-shadow: 0 0 30px #ffd700; }
+        .v-card.sr { border: 5px solid #a29bfe; background: var(--sr-purple); box-shadow: 0 0 20px #a29bfe; }
+        .v-card.r { border: 5px solid var(--main-blue); }
+
+        .ssr::before { content: ""; position: absolute; inset: -50%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); transform: rotate(45deg); animation: shine 2s infinite; }
+        @keyframes shine { 0% { left: -100%; } 100% { left: 100%; } }
+
+        /* 圖鑑樣式 */
+        .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 400px; }
+        .mini-card { background: white; border-radius: 12px; padding: 12px; text-align: center; border-bottom: 4px solid #ddd; }
+        .mini-card.ssr { border-bottom-color: #ffd700; }
+        .record-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--main-blue); width: 100%; box-sizing: border-box; }
         .box-tag { background: var(--main-blue); color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; }
 
         /* 底部導覽列 */
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #ccc; font-weight: bold; font-size: 0.95rem; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #ccc; font-weight: bold; font-size: 0.8rem; }
         .nav-item.active { color: var(--main-blue); }
     </style>
 </head>
@@ -55,49 +73,69 @@
 <div id="loginOverlay">
     <div class="login-container">
         <div class="login-box">
-            <h2 style="color:var(--dark-blue); margin:0 0 15px 0;">🦌 鹿茸應援戳戳樂</h2>
-            <input type="text" id="username" placeholder="請輸入暱稱 (帳號)">
-            <input type="password" id="password" placeholder="請輸入密碼">
-            <button onclick="login()">進入遊戲 / 註冊</button>
+            <h2 style="color:var(--dark-blue); margin:0 0 15px 0;">🦌 鹿茸應援中心</h2>
+            <input type="text" id="username" placeholder="暱稱 (帳號)">
+            <input type="password" id="password" placeholder="密碼">
+            <button onclick="login()">進入 / 註冊</button>
         </div>
-
         <div class="instruction-card">
             <h3>📜 遊戲規則說明</h3>
-            <ul>
-                <li><b>帳號保護</b>：新玩家輸入暱稱與密碼即可自動註冊。密碼無格式限制，簡單好記即可，用於跨裝置同步進度。</li>
-                <li><b>體力機制</b>：初始擁有 <b>4次</b> 抽獎機會，每小時自動恢復 1 抽（上限 10 抽）。</li>
-                <li><b>共享獎池</b>：全場共 10 盒。所有格子皆與所有玩家同步，手速要快喔！全部抽光後會重置新的 10 盒~ </li>
-                <li><b>安裝教學</b>：點擊瀏覽器選單「加入主畫面」，即可像 App 一樣直接從桌面開啟。</li>
+            <ul style="padding-left: 20px; font-size: 0.8rem;">
+                <li><b>帳號保護</b>：密碼無限制，簡單好記即可。</li>
+                <li><b>體力機制</b>：戳戳初始 4 抽，抽卡初始 10 抽，皆為每小時恢復 1 抽。</li>
+                <li><b>卡池概率</b>：SSR 5% | SR 20% | R 75%</li>
             </ul>
         </div>
     </div>
 </div>
 
+<div id="drawOverlay" onclick="this.style.display='none'">
+    <div id="cardStage"></div>
+</div>
+
 <div id="gamePage" class="page active">
-    <h1 style="margin:10px 0; font-size: 1.5rem;">🦌 白鹿·幸運盒子</h1>
+    <h1 style="margin:10px 0; font-size: 1.5rem;">🎯 幸運戳戳樂</h1>
     <div class="user-card">
-        <div id="timer" style="font-size:0.8rem; color:#999; margin-bottom:5px;">下一抽補給中...</div>
-        <div style="font-size: 1rem;"><span id="displayUserName">-</span> 的剩餘抽數：<span class="draw-count" id="uDraws">0</span></div>
+        <div id="timer" style="font-size:0.8rem; color:#999;">下一抽補給中...</div>
+        <div style="font-size: 0.9rem;"><span id="displayUserName">-</span> 的戳戳次數：<span class="draw-count" id="uDraws">0</span></div>
     </div>
     <div class="box-nav" id="boxNav"></div>
     <div class="box-grid" id="board"></div>
 </div>
 
+<div id="gachaPage" class="page">
+    <h1 style="margin:10px 0; font-size: 1.5rem;">✨ 抽卡中心</h1>
+    <div class="user-card">
+        <div id="gTimer" style="font-size:0.8rem; color:#999;">抽卡體力補給中...</div>
+        <div style="font-size: 0.9rem;">目前抽卡次數：<span class="draw-count" id="gDraws">0</span></div>
+    </div>
+    <div class="card-pack" onclick="drawCard()">
+        <h3 style="margin:0">白鹿</h3>
+        <p style="font-size:0.7rem; letter-spacing: 2px;">SPECIAL CARD</p>
+    </div>
+    <p style="font-size: 0.8rem; color: #999;">點擊卡包滑出驚喜小卡</p>
+</div>
+
 <div id="recordPage" class="page">
-    <h1 style="margin:10px 0; font-size: 1.5rem;">🎁 我的戰利品</h1>
-    <div id="recordList" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+    <h1 style="margin:10px 0; font-size: 1.5rem;">📜 我的圖鑑 & 紀錄</h1>
+    <div style="width:100%; max-width:400px;">
+        <h3 style="font-size:1rem; border-left:4px solid var(--main-blue); padding-left:10px;">✨ 收藏小卡</h3>
+        <div class="gallery-grid" id="cardGallery"></div>
+        <h3 style="font-size:1rem; border-left:4px solid var(--main-blue); padding-left:10px; margin-top:20px;">🎁 戳戳紀錄</h3>
+        <div id="recordList"></div>
+    </div>
 </div>
 
 <div class="nav-bar">
-    <div class="nav-item active" onclick="switchPage('gamePage', this)">🎮 戳戳大廳</div>
-    <div class="nav-item" onclick="switchPage('recordPage', this)">📜 我的紀錄</div>
+    <div class="nav-item active" onclick="switchPage('gamePage', this)">🎯 戳戳樂</div>
+    <div class="nav-item" onclick="switchPage('gachaPage', this)">✨ 抽卡</div>
+    <div class="nav-item" onclick="switchPage('recordPage', this)">📜 圖鑑</div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Firebase 配置
     const firebaseConfig = {
         apiKey: "AIzaSyDVRZLXRd7e3LwdeAbmGFoxIutVpfqBhR8",
         authDomain: "bailu-poke.firebaseapp.com",
@@ -112,17 +150,23 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     
+    const CARD_POOL = [
+        { n: "姜雪寧·寧安如夢", r: "SSR" }, { n: "黎蘇蘇·長月燼明", r: "SSR" },
+        { n: "鄭書意·以愛為營", r: "SR" }, { n: "崔時宜·周生如故", r: "SR" },
+        { n: "林少春·玉樓春", r: "R" }, { n: "白鹿·元氣日常", r: "R" },
+        { n: "白鹿·鹿角造型", r: "R" }, { n: "白鹿·紅毯瞬間", r: "R" }
+    ];
+
     let user = null;
     let userData = null;
     let currentBox = 0;
-    const NUM_BOXES = 10;
 
     window.switchPage = (pageId, navEl) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
         navEl.classList.add('active');
-        if(pageId === 'recordPage') renderMyRecords();
+        if(pageId === 'recordPage') renderCollections();
     };
 
     window.login = async () => {
@@ -131,19 +175,24 @@
         if (!name || !pass) return alert("暱稱和密碼都要填喔！");
         
         const userRef = ref(db, `users/${name}`);
-        const snapshot = await get(userRef);
+        const snap = await get(userRef);
 
-        if (snapshot.exists()) {
-            const data = snapshot.val();
+        if (snap.exists()) {
+            const data = snap.val();
             if (data.password === pass) {
                 userData = data;
                 user = name;
                 enterGame();
             } else {
-                alert("密碼不對喔，請再檢查一下。");
+                alert("密碼不正確。");
             }
         } else {
-            userData = { name: name, password: pass, draws: 4, lastRefill: Date.now(), myPrizes: [] };
+            userData = { 
+                name, password: pass, 
+                draws: 4, lastRefill: Date.now(), 
+                gDraws: 10, lastGRefill: Date.now(),
+                myPrizes: [], myCards: [] 
+            };
             await set(userRef, userData);
             user = name;
             enterGame();
@@ -153,47 +202,68 @@
     function enterGame() {
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('displayUserName').innerText = user;
-        listenToBoxes();
-        setInterval(checkRefill, 1000);
-        renderMyRecords();
+        onValue(ref(db, 'prizes'), (snap) => renderBoard(snap.val() || initCloudPrizes()));
+        setInterval(checkEnergy, 1000);
     }
 
-    async function checkRefill() {
+    async function checkEnergy() {
         if (!user) return;
         const now = Date.now();
-        const diff = now - userData.lastRefill;
-        if (diff >= 3600000 && userData.draws < 10) {
-            const earned = Math.floor(diff / 3600000);
-            userData.draws = Math.min(10, userData.draws + earned);
-            userData.lastRefill += earned * 3600000;
-            await update(ref(db, `users/${user}`), { draws: userData.draws, lastRefill: userData.lastRefill });
+        let changed = false;
+
+        // 戳戳體力
+        if (now - userData.lastRefill >= 3600000 && userData.draws < 10) {
+            userData.draws++;
+            userData.lastRefill += 3600000;
+            changed = true;
         }
+        // 抽卡體力
+        if (now - userData.lastGRefill >= 3600000 && userData.gDraws < 10) {
+            userData.gDraws++;
+            userData.lastGRefill += 3600000;
+            changed = true;
+        }
+
+        if (changed) await update(ref(db, `users/${user}`), userData);
+        
         document.getElementById('uDraws').innerText = userData.draws;
-        const rem = (userData.lastRefill + 3600000) - now;
-        document.getElementById('timer').innerText = userData.draws >= 10 ? "✨ 體力滿格 ✨" : `下一抽補給：${Math.floor(rem/60000)}分${Math.floor((rem%60000)/1000)}秒`;
+        document.getElementById('gDraws').innerText = userData.gDraws;
+
+        const pRem = (userData.lastRefill + 3600000) - now;
+        const gRem = (userData.lastGRefill + 3600000) - now;
+        document.getElementById('timer').innerText = userData.draws >= 10 ? "✨ 體力滿格 ✨" : `補給：${Math.floor(pRem/60000)}分${Math.floor((pRem%60000)/1000)}秒`;
+        document.getElementById('gTimer').innerText = userData.gDraws >= 10 ? "✨ 抽卡體力滿格 ✨" : `補給：${Math.floor(gRem/60000)}分${Math.floor((gRem%60000)/1000)}秒`;
     }
 
-    function listenToBoxes() {
-        onValue(ref(db, 'prizes'), (snapshot) => {
-            const allBoxes = snapshot.val() || initCloudPrizes();
-            renderBoard(allBoxes);
-        });
-    }
+    window.drawCard = async () => {
+        if (userData.gDraws <= 0) return alert("抽卡體力不足！");
+        userData.gDraws--;
 
-    function initCloudPrizes() {
-        const pool = ["簽名小卡", "劇照貼紙", "應援手幅", "限定海報", "銘謝惠顧", "特製徽章", "精美透卡", "神秘禮物"];
-        const init = {};
-        for(let i=0; i<NUM_BOXES; i++) {
-            init[i] = Array.from({length:16}, () => ({ p: pool[Math.floor(Math.random()*pool.length)], is: false }));
-        }
-        set(ref(db, 'prizes'), init);
-        return init;
-    }
+        const rand = Math.random() * 100;
+        let rarity = rand < 5 ? "SSR" : (rand < 25 ? "SR" : "R");
+        const pool = CARD_POOL.filter(c => c.r === rarity);
+        const card = pool[Math.floor(Math.random() * pool.length)];
+
+        if (!userData.myCards) userData.myCards = [];
+        userData.myCards.push({ ...card, time: new Date().toLocaleDateString() });
+
+        await update(ref(db, `users/${user}`), userData);
+
+        const stage = document.getElementById('cardStage');
+        stage.innerHTML = `
+            <div class="v-card ${rarity.toLowerCase()}">
+                <div style="font-size:0.9rem; font-weight:bold; color:rgba(0,0,0,0.5)">${rarity}</div>
+                <div style="font-size:1.4rem; font-weight:bold; margin:20px 0; text-align:center; padding:0 20px;">${card.n}</div>
+                <div style="font-size:0.7rem; color:rgba(0,0,0,0.4)">✨ 應援限定珍藏卡 ✨</div>
+            </div>
+        `;
+        document.getElementById('drawOverlay').style.display = 'flex';
+    };
 
     function renderBoard(allBoxes) {
         const nav = document.getElementById('boxNav');
         nav.innerHTML = '';
-        for(let i=0; i<NUM_BOXES; i++) {
+        for(let i=0; i<10; i++) {
             const b = document.createElement('button');
             b.innerText = `盒${i+1}`;
             b.className = `tab ${currentBox === i ? 'active' : ''}`;
@@ -214,26 +284,38 @@
     async function poke(idx, item) {
         if (item.is || userData.draws <= 0) return;
         userData.draws--;
-        const now = new Date();
-        const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
         if(!userData.myPrizes) userData.myPrizes = [];
-        userData.myPrizes.push({ box: currentBox + 1, prize: item.p, time: timeStr });
-        await update(ref(db, `users/${user}`), { draws: userData.draws, myPrizes: userData.myPrizes });
+        userData.myPrizes.push({ box: currentBox + 1, prize: item.p, time: new Date().toLocaleString() });
+        await update(ref(db, `users/${user}`), userData);
         update(ref(db, `prizes/${currentBox}/${idx}`), { is: true, winner: user });
     }
 
-    function renderMyRecords() {
-        const list = document.getElementById('recordList');
-        if (!userData || !userData.myPrizes || userData.myPrizes.length === 0) {
-            list.innerHTML = '<p style="color:#ccc; margin-top:50px;">還沒戳到獎品喔，加油！</p>';
-            return;
-        }
-        list.innerHTML = userData.myPrizes.map(r => `
-            <div class="record-item">
-                <div><b>${r.prize}</b><small style="color:#999; display:block;">${r.time}</small></div>
-                <span class="box-tag">第 ${r.box} 盒</span>
+    function renderCollections() {
+        const gallery = document.getElementById('cardGallery');
+        gallery.innerHTML = userData.myCards?.map(c => `
+            <div class="mini-card ${c.r.toLowerCase()}">
+                <div style="font-size:0.6rem; font-weight:bold;">${c.r}</div>
+                <div style="font-size:0.75rem; margin-top:5px;">${c.n}</div>
             </div>
-        `).reverse().join('');
+        `).reverse().join('') || '<p style="font-size:0.8rem; color:#ccc">尚無卡片</p>';
+
+        const list = document.getElementById('recordList');
+        list.innerHTML = userData.myPrizes?.map(r => `
+            <div class="record-item">
+                <div><b>${r.prize}</b></div>
+                <span class="box-tag">盒 ${r.box}</span>
+            </div>
+        `).reverse().join('') || '<p style="font-size:0.8rem; color:#ccc">尚無中獎紀錄</p>';
+    }
+
+    function initCloudPrizes() {
+        const pool = ["簽名小卡", "劇照貼紙", "應援手幅", "限定海報", "銘謝惠顧", "特製徽章", "精美透卡", "神秘禮物"];
+        const init = {};
+        for(let i=0; i<10; i++) {
+            init[i] = Array.from({length:16}, () => ({ p: pool[Math.floor(Math.random()*pool.length)], is: false }));
+        }
+        set(ref(db, 'prizes'), init);
+        return init;
     }
 </script>
 </body>
