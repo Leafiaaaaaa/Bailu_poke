@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>白鹿遊戲中心</title>
+    <title>白鹿應援：幸運戳戳 & 集卡</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#AFDFE4">
     <link rel="apple-touch-icon" href="icon-192.png">
     <style>
+        /* 全域修正：確保寬度計算包含 Padding */
         * { box-sizing: border-box; }
+
         :root { --main-blue: #AFDFE4; --dark-blue: #7BB8C1; --bg: #F5FAFB; --nav-text: #044259; --ssr-gold: linear-gradient(45deg, #ffd700, #fff5b1, #ffd700); }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--dark-blue); margin: 0; padding-bottom: 75px; overflow-x: hidden; }
         
@@ -16,47 +18,48 @@
         .page.active { display: flex; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* 登入介面 */
+        /* --- 1. 登入介面 (修正歪斜問題) --- */
         #loginOverlay { position: fixed; inset: 0; background: var(--main-blue); display: flex; justify-content: center; align-items: flex-start; z-index: 2000; overflow-y: auto; padding: 40px 0; }
         .login-container { display: flex; flex-direction: column; align-items: center; width: 85%; max-width: 340px; gap: 20px; }
+        
         .login-box { background: white; padding: 30px 20px; border-radius: 25px; text-align: center; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .login-box input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--main-blue); border-radius: 12px; outline: none; font-size: 1rem; }
         .login-box button { background: var(--main-blue); color: white; border: none; padding: 12px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+
         .instruction-card { background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 20px; width: 100%; font-size: 0.85rem; border: 1.5px dashed var(--dark-blue); color: #555; line-height: 1.6; }
         .instruction-card h3 { margin: 0 0 10px 0; text-align: center; color: var(--nav-text); font-size: 1.05rem; }
+        /* 修正清單歪斜：reset ul padding */
         .instruction-card ul { margin: 0; padding-left: 1.2rem; }
+        .instruction-card li { margin-bottom: 6px; }
 
-        /* 狀態卡片 */
+        /* --- 2. 遊戲介面 --- */
         .user-card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 15px; border: 1px solid var(--main-blue); }
         .draw-count { color: #ff6b6b; font-weight: bold; font-size: 1.4rem; }
         
-        /* 盒子選擇器 (1行5盒) */
-        .box-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 360px; margin-bottom: 15px; min-height: 40px; }
+        .box-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 360px; margin-bottom: 15px; }
         .tab { padding: 8px 0; border: 1.5px solid var(--main-blue); border-radius: 10px; cursor: pointer; background: white; font-size: 0.85rem; font-weight: bold; color: var(--nav-text); text-align: center; }
         .tab.active { background: var(--main-blue); color: white; }
 
-        /* 戳戳樂格子 */
-        .box-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: white; padding: 15px; border-radius: 20px; border: 2px solid var(--main-blue); width: 100%; max-width: 360px; min-height: 200px; }
+        .box-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: white; padding: 15px; border-radius: 20px; border: 2px solid var(--main-blue); width: 100%; max-width: 360px; }
         .slot { aspect-ratio: 1/1; background: var(--main-blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1); }
         .slot.poked { background: #E8F7F9; color: var(--dark-blue); cursor: not-allowed; border: 1px solid #ddd; box-shadow: none; font-size: 0.65rem; text-align: center; padding: 4px; }
 
-        /* 特效卡片 */
+        /* --- 3. 特效卡片 --- */
         .result-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; }
-        .v-card { width: 260px; height: 380px; background: white; border-radius: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border: 5px solid var(--main-blue); animation: cardPop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        .v-card { width: 260px; height: 380px; background: white; border-radius: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 5px solid var(--main-blue); animation: cardPop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
         @keyframes cardPop { from { transform: scale(0.5) translateY(50%); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
         .v-card.legend { border-color: #ffd700; background: var(--ssr-gold); box-shadow: 0 0 40px #ffd700; }
 
-        /* 圖鑑表格 */
+        /* --- 4. 底部導覽 --- */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #ccc; font-weight: bold; font-size: 0.85rem; }
+        .nav-item.active { color: var(--main-blue); }
+
         .collection-table { width: 100%; max-width: 400px; background: white; border-radius: 15px; border-collapse: collapse; overflow: hidden; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .collection-table th { background: var(--main-blue); color: white; padding: 12px; }
         .collection-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f0f0f0; color: var(--nav-text); font-size: 0.85rem; }
         .count-badge { display: inline-block; min-width: 24px; padding: 2px 6px; border-radius: 12px; background: #eee; font-weight: bold; }
         .owned { background: var(--main-blue); color: white; }
-
-        /* 底部導覽 */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #ccc; font-weight: bold; font-size: 0.85rem; }
-        .nav-item.active { color: var(--main-blue); }
     </style>
 </head>
 <body>
@@ -64,13 +67,13 @@
 <div id="loginOverlay">
     <div class="login-container">
         <div class="login-box">
-            <h2 style="color:var(--dark-blue); margin:0 0 15px 0;">🦌 鹿茸遊戲中心</h2>
+            <h2 style="color:var(--dark-blue); margin:0 0 15px 0;">🦌 鹿茸應援中心</h2>
             <input type="text" id="username" placeholder="暱稱 (帳號)">
             <input type="password" id="password" placeholder="密碼">
             <button onclick="login()">進入 / 註冊</button>
         </div>
         <div class="instruction-card">
-            <h3>📜 遊戲手冊</h3>
+            <h3>📜 應援手冊</h3>
             <ul>
                 <li><b>帳號同步：</b>暱稱即帳號，輸入密碼即可同步。</li>
                 <li><b>戳戳樂：</b>10 盒共享獎池，每小時恢復 1 抽。</li>
@@ -88,7 +91,7 @@
 <div id="gamePage" class="page active">
     <h1>🎯 幸運戳戳樂</h1>
     <div class="user-card">
-        <div id="timer" style="font-size:0.75rem; color:#999; margin-bottom:3px;">連線中...</div>
+        <div id="timer" style="font-size:0.75rem; color:#999; margin-bottom:3px;">計算中...</div>
         <div>次數：<span class="draw-count" id="uDraws">0</span> / 10</div>
     </div>
     <div id="boxNav" class="box-nav"></div>
@@ -98,10 +101,10 @@
 <div id="gachaPage" class="page">
     <h1>✨ 抽卡中心</h1>
     <div class="user-card">
-        <div id="gTimer" style="font-size:0.75rem; color:#999; margin-bottom:3px;">補給中...</div>
+        <div id="gTimer" style="font-size:0.75rem; color:#999; margin-bottom:3px;">計算中...</div>
         <div>抽卡體力：<span class="draw-count" id="gDraws">0</span> / 20</div>
     </div>
-    <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px;">
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; margin-top: 10px;">
         <button style="padding:14px; border:none; border-radius:30px; background:var(--main-blue); color:white; font-weight:bold; cursor:pointer;" onclick="drawGacha(1)">單抽 (1抽)</button>
         <button style="padding:14px; border:none; border-radius:30px; background:#a29bfe; color:white; font-weight:bold; cursor:pointer;" onclick="drawGacha(5)">五連抽 (5抽)</button>
         <button style="padding:14px; border:none; border-radius:30px; background:var(--dark-blue); color:white; font-weight:bold; cursor:pointer;" onclick="drawGacha(10)">十連抽 (10抽)</button>
@@ -148,8 +151,6 @@
         { n: "白鹿·鹿角造型", r: "R" }, { n: "白鹿·紅毯瞬間", r: "R" }
     ];
 
-    const NUM_BOXES = 10; // 重要：補回漏掉的變數
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     let user = null, userData = null, currentBox = 0;
@@ -158,88 +159,49 @@
         const name = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value.trim();
         if(!name || !pass) return alert("請輸入暱稱與密碼");
-        
         const userRef = ref(db, `users/${name}`);
-        try {
-            const snap = await get(userRef);
-            if(snap.exists()){
-                userData = snap.val();
-                if(userData.password !== pass) return alert("密碼錯誤");
-                if(userData.gDraws === undefined) userData.gDraws = 20;
-                await update(userRef, userData);
-            } else {
-                userData = { name, password: pass, draws: 4, lastRefill: Date.now(), gDraws: 20, lastGRefill: Date.now(), myPrizes: [], myCards: [] };
-                await set(userRef, userData);
-            }
-            user = name;
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('displayUserName').innerText = user;
-            
-            // 監聽獎池
-            onValue(ref(db, 'prizes'), (s) => {
-                const data = s.val();
-                renderBoard(data || initCloudPrizes());
-            });
-            
-            setInterval(checkEnergy, 1000);
-        } catch (e) {
-            alert("連線失敗，請檢查網路或 Firebase 權限");
-            console.error(e);
+        const snap = await get(userRef);
+        if(snap.exists()){
+            userData = snap.val();
+            if(userData.password !== pass) return alert("密碼錯誤");
+            if(userData.gDraws === undefined) userData.gDraws = 20;
+            await update(userRef, userData);
+        } else {
+            userData = { name, password: pass, draws: 4, lastRefill: Date.now(), gDraws: 20, lastGRefill: Date.now(), myPrizes: [], myCards: [] };
+            await set(userRef, userData);
         }
+        user = name;
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('displayUserName').innerText = user;
+        onValue(ref(db, 'prizes'), (s) => renderBoard(s.val() || initCloudPrizes()));
+        setInterval(checkEnergy, 1000);
     };
+
+    async function checkEnergy() {
+        if(!user) return;
+        const now = Date.now();
+        let changed = false;
+        if(now - userData.lastRefill >= 3600000 && userData.draws < 10) { userData.draws++; userData.lastRefill += 3600000; changed = true; }
+        if(now - userData.lastGRefill >= 3600000 && userData.gDraws < 20) { userData.gDraws++; userData.lastGRefill += 3600000; changed = true; }
+        if(changed) await update(ref(db, `users/${user}`), userData);
+        document.getElementById('uDraws').innerText = userData.draws;
+        document.getElementById('gDraws').innerText = userData.gDraws;
+        const pRem = Math.max(0, (userData.lastRefill + 3600000) - now);
+        const gRem = Math.max(0, (userData.lastGRefill + 3600000) - now);
+        document.getElementById('timer').innerText = userData.draws >= 10 ? "✨ 體力滿格" : `補給：${Math.floor(pRem/60000)}分${Math.floor((pRem%60000)/1000)}秒`;
+        document.getElementById('gTimer').innerText = userData.gDraws >= 20 ? "✨ 體力滿格" : `補給：${Math.floor(gRem/60000)}分${Math.floor((gRem%60000)/1000)}秒`;
+    }
 
     function initCloudPrizes() {
         const init = {};
-        for(let i=0; i<NUM_BOXES; i++){
+        for(let i=0; i<10; i++){
             init[i] = Array.from({length:16}, () => {
                 let rand = Math.random()*100, pName = "";
                 for(const p of PRIZE_SETTING) { if(rand < p.w) { pName = p.n; break; } rand -= p.w; }
                 return { p: pName || "代言糖果", is: false };
             });
         }
-        set(ref(db, 'prizes'), init); 
-        return init;
-    }
-
-    function renderBoard(allBoxes) {
-        const board = document.getElementById('board');
-        const nav = document.getElementById('boxNav');
-        if(!board || !nav || !allBoxes) return;
-
-        board.innerHTML = '';
-        const currentBoxData = allBoxes[currentBox] || [];
-        currentBoxData.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.className = `slot ${item.is ? 'poked' : ''}`;
-            div.innerHTML = item.is ? item.p : idx+1;
-            div.onclick = () => poke(idx, item);
-            board.appendChild(div);
-        });
-
-        nav.innerHTML = '';
-        for(let i=0; i<NUM_BOXES; i++){
-            const b = document.createElement('button');
-            b.innerText = `盒 ${i+1}`; 
-            b.className = `tab ${currentBox === i ? 'active' : ''}`;
-            b.onclick = () => { currentBox = i; renderBoard(allBoxes); };
-            nav.appendChild(b);
-        }
-    }
-
-    async function checkEnergy() {
-        if(!user || !userData) return;
-        const now = Date.now();
-        let changed = false;
-        if(now - userData.lastRefill >= 3600000 && userData.draws < 10) { userData.draws++; userData.lastRefill += 3600000; changed = true; }
-        if(now - userData.lastGRefill >= 3600000 && userData.gDraws < 20) { userData.gDraws++; userData.lastGRefill += 3600000; changed = true; }
-        
-        if(changed) await update(ref(db, `users/${user}`), userData);
-        
-        document.getElementById('uDraws').innerText = userData.draws;
-        document.getElementById('gDraws').innerText = userData.gDraws;
-        
-        const pRem = Math.max(0, (userData.lastRefill + 3600000) - now);
-        document.getElementById('timer').innerText = userData.draws >= 10 ? "✨ 體力滿格" : `補給：${Math.floor(pRem/60000)}分${Math.floor((pRem%60000)/1000)}秒`;
+        set(ref(db, 'prizes'), init); return init;
     }
 
     window.drawGacha = async (amt) => {
@@ -253,7 +215,9 @@
             results.push({ name: card.n, rarityClass: rarity.toLowerCase() === 'ssr' ? 'legend' : '' });
         }
         await update(ref(db, `users/${user}`), userData);
-        showResult(results[0].name, results[0].rarityClass);
+        const stage = document.getElementById('resultStage');
+        stage.innerHTML = results.slice(0,1).map(r => `<div class="v-card ${r.rarityClass}"><h2>獲得：</h2><h1>${r.name}</h1></div>`).join('');
+        document.getElementById('resultOverlay').style.display = 'flex';
         if(amt > 1) alert(`抽得 ${amt} 張卡，請至圖鑑查看！`);
     };
 
@@ -265,13 +229,27 @@
         userData.myPrizes.push({ p: item.p, b: currentBox+1 });
         await update(ref(db, `users/${user}`), userData);
         update(ref(db, `prizes/${currentBox}/${idx}`), { is: true, winner: user });
-        showResult(item.p, prizeInfo?.r === 'legend' ? 'legend' : '');
+        const stage = document.getElementById('resultStage');
+        stage.innerHTML = `<div class="v-card ${prizeInfo?.r === 'legend'?'legend':''}"><h2>戳中：</h2><h1>${item.p}</h1></div>`;
+        document.getElementById('resultOverlay').style.display = 'flex';
     }
 
-    function showResult(name, rarityClass) {
-        const stage = document.getElementById('resultStage');
-        stage.innerHTML = `<div class="v-card ${rarityClass}"><h2>獲得獎勵：</h2><h1>${name}</h1></div>`;
-        document.getElementById('resultOverlay').style.display = 'flex';
+    function renderBoard(allBoxes) {
+        const board = document.getElementById('board'); board.innerHTML = '';
+        allBoxes[currentBox].forEach((item, idx) => {
+            const div = document.createElement('div');
+            div.className = `slot ${item.is ? 'poked' : ''}`;
+            div.innerHTML = item.is ? item.p : idx+1;
+            div.onclick = () => poke(idx, item);
+            board.appendChild(div);
+        });
+        const nav = document.getElementById('boxNav'); nav.innerHTML = '';
+        for(let i=0; i<10; i++){
+            const b = document.createElement('button');
+            b.innerText = `盒 ${i+1}`; b.className = `tab ${currentBox === i ? 'active' : ''}`;
+            b.onclick = () => { currentBox = i; renderBoard(allBoxes); };
+            nav.appendChild(b);
+        }
     }
 
     window.switchPage = (pageId, navEl) => {
