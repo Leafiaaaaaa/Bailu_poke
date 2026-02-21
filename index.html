@@ -9,63 +9,53 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         :root { --main-blue: #AFDFE4; --dark-blue: #7BB8C1; --bg: #F5FAFB; --nav-text: #044259; --ssr-gold: linear-gradient(45deg, #ffd700, #fff5b1, #ffd700); }
-        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--dark-blue); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--dark-blue); margin: 0; padding-bottom: 75px; overflow-x: hidden; }
         
         .page { display: none; padding: 20px; flex-direction: column; align-items: center; width: 100%; box-sizing: border-box; }
         .page.active { display: flex; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* 登入蓋板 */
-        #loginOverlay { position: fixed; inset: 0; background: var(--main-blue); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px 0; }
+        #loginOverlay { position: fixed; inset: 0; background: var(--main-blue); display: flex; justify-content: center; align-items: center; z-index: 2000; }
         .login-box { background: white; padding: 25px; border-radius: 25px; text-align: center; width: 90%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .login-box input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--main-blue); border-radius: 12px; outline: none; box-sizing: border-box; }
+        .login-box input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--main-blue); border-radius: 12px; box-sizing: border-box; outline: none; }
         .login-box button { background: var(--main-blue); color: white; border: none; padding: 12px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
         /* 頂部資訊卡 */
-        .user-card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 95%; max-width: 400px; text-align: center; margin-bottom: 20px; border: 1px solid var(--main-blue); box-sizing: border-box; }
-        .draw-count { color: #ff6b6b; font-weight: bold; font-size: 1.5rem; }
+        .user-card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 95%; max-width: 400px; text-align: center; margin-bottom: 15px; border: 1px solid var(--main-blue); }
+        .draw-count { color: #ff6b6b; font-weight: bold; font-size: 1.4rem; }
 
-        /* 盒子選擇區優化 (1行5盒, 置中) */
-        .box-nav { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 8px; 
-            width: 100%; 
-            max-width: 360px; 
-            margin: 0 auto 15px auto; 
-            justify-items: center;
-        }
-        .tab { 
-            width: 100%;
-            padding: 8px 0; 
-            border: 1.5px solid var(--main-blue); 
-            border-radius: 12px; 
-            cursor: pointer; 
-            background: white; 
-            font-size: 0.85rem; 
-            font-weight: bold;
-            color: var(--nav-text); /* 指定顏色 #044259 */
-            transition: 0.2s;
-        }
-        .tab.active { background: var(--main-blue); color: white; border-color: var(--main-blue); }
+        /* 盒子選擇 (1行5盒) */
+        .box-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 360px; margin-bottom: 15px; }
+        .tab { padding: 8px 0; border: 1.5px solid var(--main-blue); border-radius: 10px; cursor: pointer; background: white; font-size: 0.8rem; font-weight: bold; color: var(--nav-text); }
+        .tab.active { background: var(--main-blue); color: white; }
 
         /* 戳戳樂格子 */
-        .box-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: white; padding: 15px; border-radius: 20px; border: 2px solid var(--main-blue); width: 100%; max-width: 360px; box-sizing: border-box; }
-        .slot { aspect-ratio: 1/1; background: var(--main-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1); }
-        .slot.poked { background: #E8F7F9; color: var(--dark-blue); cursor: not-allowed; border: 1px solid #ddd; box-shadow: none; }
-        .prize-text { font-size: 0.65rem; display: none; text-align: center; padding: 4px; line-height: 1.2; }
-        .slot.poked .prize-text { display: block; }
-        .slot.poked .num { display: none; }
+        .box-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: white; padding: 15px; border-radius: 20px; border: 2px solid var(--main-blue); width: 100%; max-width: 360px; }
+        .slot { aspect-ratio: 1/1; background: var(--main-blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1); }
+        .slot.poked { background: #E8F7F9; color: var(--dark-blue); cursor: not-allowed; border: 1px solid #ddd; box-shadow: none; font-size: 0.7rem; text-align: center; padding: 4px; }
 
-        /* 獎品/卡片彈窗通用樣式 */
-        .result-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; text-align: center; }
-        .pop-card { background: white; width: 260px; padding: 40px 20px; border-radius: 30px; box-shadow: 0 0 20px var(--main-blue); animation: popUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        @keyframes popUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* 抽卡按鈕組 */
+        .gacha-controls { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin-top: 20px; }
+        .gacha-btn { padding: 12px; border: none; border-radius: 30px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-1 { background: var(--main-blue); }
+        .btn-5 { background: #a29bfe; }
+        .btn-10 { background: var(--dark-blue); }
+        .gacha-btn:active { transform: scale(0.95); }
 
-        /* 抽卡包與卡片 */
-        .card-pack { width: 180px; height: 260px; background: var(--main-blue); border: 4px solid white; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; box-shadow: 0 10px 20px rgba(175, 223, 228, 0.5); cursor: pointer; margin: 30px 0; }
-        .v-card { width: 260px; height: 400px; background: white; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 5px solid var(--main-blue); animation: popUp 0.5s; }
-        .v-card.ssr { border-color: #ffd700; background: var(--ssr-gold); }
+        /* 圖鑑大表樣式 */
+        .collection-table { width: 100%; max-width: 400px; background: white; border-radius: 15px; border-collapse: collapse; overflow: hidden; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .collection-table th { background: var(--main-blue); color: white; padding: 12px; font-size: 0.9rem; }
+        .collection-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; color: var(--nav-text); }
+        .count-badge { display: inline-block; min-width: 24px; padding: 2px 6px; border-radius: 12px; background: #eee; font-weight: bold; }
+        .owned { background: var(--main-blue); color: white; }
+
+        /* 彈窗樣式 */
+        .result-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; overflow-y: auto; padding: 20px; }
+        .result-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; max-width: 320px; }
+        .result-item { background: white; padding: 15px; border-radius: 12px; text-align: center; animation: popUp 0.3s; }
+        @keyframes popUp { from { transform: scale(0.5); } to { transform: scale(1); } }
+        .ssr-text { color: #d4af37; font-weight: bold; }
 
         /* 底部導覽 */
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
@@ -79,28 +69,24 @@
     <div class="login-box">
         <h2 style="color:var(--dark-blue)">🦌 鹿茸應援中心</h2>
         <input type="text" id="username" placeholder="暱稱 (帳號)">
-        <input type="password" id="password" placeholder="簡易密碼">
+        <input type="password" id="password" placeholder="密碼">
         <button onclick="login()">進入 / 註冊</button>
     </div>
 </div>
 
-<div id="pokeResultOverlay" class="result-overlay" onclick="this.style.display='none'">
-    <div class="pop-card">
-        <p style="color:#999; margin:0;">🎉 恭喜獲得 🎉</p>
-        <h2 id="pokePrizeName" style="color:var(--dark-blue); font-size:1.8rem; margin:15px 0;"></h2>
-        <p style="font-size:0.8rem; color:#ccc;">( 點擊螢幕關閉 )</p>
-    </div>
-</div>
-
 <div id="drawOverlay" class="result-overlay" onclick="this.style.display='none'">
-    <div id="cardStage"></div>
+    <div id="resultContent" style="display:flex; flex-direction:column; align-items:center; gap:20px;">
+        <h2 style="color:white;">恭喜獲得</h2>
+        <div id="resultList" class="result-list"></div>
+        <p style="color:#888;">點擊任意處關閉</p>
+    </div>
 </div>
 
 <div id="gamePage" class="page active">
     <h1>🎯 幸運戳戳樂</h1>
     <div class="user-card">
-        <div id="timer" style="font-size:0.75rem; color:#999; margin-bottom:3px;">補給計算中...</div>
-        <div style="font-size: 0.9rem;"><span id="displayUserName">-</span> 的次數：<span class="draw-count" id="uDraws">0</span></div>
+        <div id="timer" style="font-size:0.75rem; color:#999; margin-bottom:3px;">計算中...</div>
+        <div style="font-size: 0.9rem;"><span id="displayUserName">-</span> 的次數：<span class="draw-count" id="uDraws">0</span> / 10</div>
     </div>
     <div id="boxNav" class="box-nav"></div>
     <div id="board" class="box-grid"></div>
@@ -109,18 +95,29 @@
 <div id="gachaPage" class="page">
     <h1>✨ 抽卡中心</h1>
     <div class="user-card">
-        <div id="gTimer" style="font-size:0.75rem; color:#999; margin-bottom:3px;">補給計算中...</div>
-        <div style="font-size: 0.9rem;">目前抽卡體力：<span class="draw-count" id="gDraws">0</span></div>
+        <div id="gTimer" style="font-size:0.75rem; color:#999; margin-bottom:3px;">計算中...</div>
+        <div style="font-size: 0.9rem;">抽卡體力：<span class="draw-count" id="gDraws">0</span> / 20</div>
     </div>
-    <div class="card-pack" onclick="drawCard()">
-        <h3 style="margin:0">白鹿</h3>
-        <p style="font-size:0.7rem;">SPECIAL CARD</p>
+    
+    <div class="card-pack" style="width:140px; height:200px; background:var(--main-blue); border-radius:15px; border:4px solid white; box-shadow:0 8px 15px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; margin:20px 0;">
+        白鹿卡包
+    </div>
+
+    <div class="gacha-controls">
+        <button class="gacha-btn btn-1" onclick="drawGacha(1)">單抽 (1抽)</button>
+        <button class="gacha-btn btn-5" onclick="drawGacha(5)">五連抽 (5抽)</button>
+        <button class="gacha-btn btn-10" onclick="drawGacha(10)">十連抽 (10抽)</button>
     </div>
 </div>
 
 <div id="recordPage" class="page">
-    <h1>📜 我的圖鑑 & 紀錄</h1>
-    <div style="width:100%; max-width:400px;" id="recordContent"></div>
+    <h1>📜 應援圖鑑大表</h1>
+    
+    <h3 style="border-left:4px solid var(--main-blue); padding-left:10px; width:100%; max-width:400px;">✨ 小卡圖鑑</h3>
+    <table class="collection-table" id="cardTable"></table>
+
+    <h3 style="border-left:4px solid var(--main-blue); padding-left:10px; width:100%; max-width:400px; margin-top:10px;">🎁 周邊大表</h3>
+    <table class="collection-table" id="prizeTable"></table>
 </div>
 
 <div class="nav-bar">
@@ -146,11 +143,14 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const CARDS = [
+    const ALL_CARDS = [
         { n: "姜雪寧·寧安如夢", r: "SSR" }, { n: "黎蘇蘇·長月燼明", r: "SSR" },
         { n: "鄭書意·以愛為營", r: "SR" }, { n: "崔時宜·周生如故", r: "SR" },
-        { n: "白鹿·元氣日常", r: "R" }, { n: "白鹿·鹿角造型", r: "R" }
+        { n: "林少春·玉樓春", r: "R" }, { n: "白鹿·元氣日常", r: "R" },
+        { n: "白鹿·鹿角造型", r: "R" }, { n: "白鹿·紅毯瞬間", r: "R" }
     ];
+
+    const ALL_PRIZES = ["簽名小卡", "應援手幅", "限定海報", "銘謝惠顧", "精美透卡", "特製徽章", "代言糖果", "隨機周邊"];
 
     let user = null;
     let userData = null;
@@ -161,25 +161,27 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
         navEl.classList.add('active');
-        if(pageId === 'recordPage') renderCollections();
+        if(pageId === 'recordPage') renderTables();
     };
 
     window.login = async () => {
         const name = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value.trim();
         if(!name || !pass) return alert("請填寫帳號密碼");
+
         const userRef = ref(db, `users/${name}`);
         const snap = await get(userRef);
+
         if(snap.exists()){
             const data = snap.val();
             if(data.password !== pass) return alert("密碼錯誤");
             userData = data;
-            if (userData.gDraws === undefined) userData.gDraws = 10;
+            // 補齊欄位與上限更新
+            if (userData.gDraws === undefined) userData.gDraws = 20;
             if (userData.lastGRefill === undefined) userData.lastGRefill = Date.now();
-            if (!userData.myCards) userData.myCards = [];
             await update(userRef, userData);
         } else {
-            userData = { name, password: pass, draws: 4, lastRefill: Date.now(), gDraws: 10, lastGRefill: Date.now(), myPrizes: [], myCards: [] };
+            userData = { name, password: pass, draws: 4, lastRefill: Date.now(), gDraws: 20, lastGRefill: Date.now(), myPrizes: [], myCards: [] };
             await set(userRef, userData);
         }
         user = name;
@@ -194,42 +196,43 @@
         const now = Date.now();
         let changed = false;
         if (now - userData.lastRefill >= 3600000 && userData.draws < 10) { userData.draws++; userData.lastRefill += 3600000; changed = true; }
-        if (now - userData.lastGRefill >= 3600000 && userData.gDraws < 10) { userData.gDraws++; userData.lastGRefill += 3600000; changed = true; }
+        // 抽卡上限調為 20
+        if (now - userData.lastGRefill >= 3600000 && userData.gDraws < 20) { userData.gDraws++; userData.lastGRefill += 3600000; changed = true; }
         if (changed) await update(ref(db, `users/${user}`), { draws: userData.draws, lastRefill: userData.lastRefill, gDraws: userData.gDraws, lastGRefill: userData.lastGRefill });
         document.getElementById('uDraws').innerText = userData.draws ?? 0;
         document.getElementById('gDraws').innerText = userData.gDraws ?? 0;
         const pRem = Math.max(0, (userData.lastRefill + 3600000) - now);
         const gRem = Math.max(0, (userData.lastGRefill + 3600000) - now);
         document.getElementById('timer').innerText = userData.draws >= 10 ? "✨ 滿格" : `補給：${Math.floor(pRem/60000)}分${Math.floor((pRem%60000)/1000)}秒`;
-        document.getElementById('gTimer').innerText = userData.gDraws >= 10 ? "✨ 滿格" : `補給：${Math.floor(gRem/60000)}分${Math.floor((gRem%60000)/1000)}秒`;
+        document.getElementById('gTimer').innerText = userData.gDraws >= 20 ? "✨ 滿格" : `補給：${Math.floor(gRem/60000)}分${Math.floor((gRem%60000)/1000)}秒`;
     }
 
-    // 戳戳樂核心邏輯 (加入彈窗特效)
-    async function poke(idx, item) {
-        if (item.is || userData.draws <= 0) return;
-        userData.draws--;
+    // 抽卡邏輯 (1/5/10連)
+    window.drawGacha = async (amount) => {
+        if (userData.gDraws < amount) return alert("體力不足！");
+        userData.gDraws -= amount;
         
-        // 顯示獎品彈窗
-        document.getElementById('pokePrizeName').innerText = item.p;
-        document.getElementById('pokeResultOverlay').style.display = 'flex';
+        const results = [];
+        for (let i = 0; i < amount; i++) {
+            const rand = Math.random() * 100;
+            let rarity = rand < 5 ? "SSR" : (rand < 25 ? "SR" : "R");
+            const pool = ALL_CARDS.filter(c => c.r === rarity);
+            const card = pool[Math.floor(Math.random() * pool.length)];
+            results.push(card);
+            if (!userData.myCards) userData.myCards = [];
+            userData.myCards.push({ n: card.n, r: card.r, t: Date.now() });
+        }
 
-        if(!userData.myPrizes) userData.myPrizes = [];
-        userData.myPrizes.push({ box: currentBox+1, prize: item.p });
-        await update(ref(db, `users/${user}`), { draws: userData.draws, myPrizes: userData.myPrizes });
-        update(ref(db, `prizes/${currentBox}/${idx}`), { is: true, winner: user });
-    }
-
-    window.drawCard = async () => {
-        if (userData.gDraws <= 0) return alert("體力不足");
-        userData.gDraws--;
-        const rand = Math.random() * 100;
-        let rarity = rand < 5 ? "SSR" : (rand < 25 ? "SR" : "R");
-        const pool = CARDS.filter(c => c.r === rarity);
-        const card = pool[Math.floor(Math.random() * pool.length)];
-        if (!userData.myCards) userData.myCards = [];
-        userData.myCards.push({ ...card, time: new Date().toLocaleDateString() });
         await update(ref(db, `users/${user}`), { gDraws: userData.gDraws, myCards: userData.myCards });
-        document.getElementById('cardStage').innerHTML = `<div class="v-card ${rarity.toLowerCase()}"><h3>${rarity}</h3><h1>${card.n}</h1></div>`;
+        
+        // 展示結果
+        const listDiv = document.getElementById('resultList');
+        listDiv.innerHTML = results.map(c => `
+            <div class="result-item">
+                <div class="${c.r === 'SSR' ? 'ssr-text' : ''}" style="font-size:0.7rem;">${c.r}</div>
+                <div style="font-weight:bold; font-size:0.85rem;">${c.n}</div>
+            </div>
+        `).join('');
         document.getElementById('drawOverlay').style.display = 'flex';
     };
 
@@ -239,7 +242,7 @@
         allBoxes[currentBox].forEach((item, idx) => {
             const div = document.createElement('div');
             div.className = `slot ${item.is ? 'poked' : ''}`;
-            div.innerHTML = item.is ? `<span class="prize-text">${item.p}</span>` : `<span class="num">${idx+1}</span>`;
+            div.innerHTML = item.is ? item.p : idx+1;
             div.onclick = () => poke(idx, item);
             board.appendChild(div);
         });
@@ -254,20 +257,44 @@
         }
     }
 
-    function renderCollections() {
-        const content = document.getElementById('recordContent');
-        content.innerHTML = `
-            <h3 style="border-left:4px solid var(--main-blue); padding-left:10px;">✨ 收藏小卡</h3>
-            <div class="gallery-grid">${userData.myCards?.map(c => `<div class="mini-card ${c.r.toLowerCase()}"><b>${c.r}</b><br>${c.n}</div>`).reverse().join('') || '尚未集卡'}</div>
-            <h3 style="border-left:4px solid var(--main-blue); padding-left:10px; margin-top:20px;">🎁 戳戳紀錄</h3>
-            ${userData.myPrizes?.map(r => `<div class="record-item"><b>${r.prize}</b><span class="box-tag">盒${r.box}</span></div>`).reverse().join('') || '尚無紀錄'}
-        `;
+    async function poke(idx, item) {
+        if (item.is || userData.draws <= 0) return;
+        userData.draws--;
+        if(!userData.myPrizes) userData.myPrizes = [];
+        userData.myPrizes.push({ p: item.p, b: currentBox+1 });
+        await update(ref(db, `users/${user}`), { draws: userData.draws, myPrizes: userData.myPrizes });
+        update(ref(db, `prizes/${currentBox}/${idx}`), { is: true, winner: user });
+        alert(`戳中了：${item.p}`);
+    }
+
+    // 渲染圖鑑大表
+    function renderTables() {
+        // 卡片表
+        const cardTable = document.getElementById('cardTable');
+        const cardCounts = {};
+        userData.myCards?.forEach(c => cardCounts[c.n] = (cardCounts[c.n] || 0) + 1);
+        
+        cardTable.innerHTML = `<tr><th>卡片名稱</th><th>稀有度</th><th>持有數量</th></tr>` + 
+            ALL_CARDS.map(c => {
+                const count = cardCounts[c.n] || 0;
+                return `<tr><td>${c.n}</td><td>${c.r}</td><td><span class="count-badge ${count > 0 ? 'owned' : ''}">${count}</span></td></tr>`;
+            }).join('');
+
+        // 周邊表
+        const prizeTable = document.getElementById('prizeTable');
+        const prizeCounts = {};
+        userData.myPrizes?.forEach(p => prizeCounts[p.p] = (prizeCounts[p.p] || 0) + 1);
+
+        prizeTable.innerHTML = `<tr><th>周邊名稱</th><th>獲得數量</th></tr>` + 
+            ALL_PRIZES.map(p => {
+                const count = prizeCounts[p] || 0;
+                return `<tr><td>${p}</td><td><span class="count-badge ${count > 0 ? 'owned' : ''}">${count}</span></td></tr>`;
+            }).join('');
     }
 
     function initCloudPrizes() {
-        const pool = ["簽名小卡", "應援手幅", "限定海報", "銘謝惠顧", "精美透卡"];
         const init = {};
-        for(let i=0; i<10; i++) init[i] = Array.from({length:16}, () => ({ p: pool[Math.floor(Math.random()*pool.length)], is: false }));
+        for(let i=0; i<10; i++) init[i] = Array.from({length:16}, () => ({ p: ALL_PRIZES[Math.floor(Math.random()*ALL_PRIZES.length)], is: false }));
         set(ref(db, 'prizes'), init);
         return init;
     }
