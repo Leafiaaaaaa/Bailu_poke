@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>白鹿應援戳戳樂</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#AFDFE4">
+    <style>
+        :root { --main-blue: #AFDFE4; --dark-blue: #7BB8C1; --bg: #F5FAFB; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--dark-blue); display: flex; flex-direction: column; align-items: center; margin: 0; }
+        .user-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-top: 20px; text-align: center; }
+        .draw-count { color: #ff6b6b; font-weight: bold; font-size: 1.2rem; }
+        .box-grid { display: grid; grid-template-columns: repeat(4, 80px); gap: 10px; margin-top: 20px; background: white; padding: 15px; border-radius: 15px; border: 2px solid var(--main-blue); }
+        .slot { width: 80px; height: 80px; background: var(--main-blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; }
+        .slot.poked { background: #E8F7F9; color: var(--dark-blue); cursor: not-allowed; border: 1px solid #ddd; }
+        .prize-text { font-size: 0.7rem; display: none; text-align: center; }
+        .slot.poked .prize-text { display: block; }
+        .slot.poked .num { display: none; }
+        .box-nav { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 15px; }
+        .tab { padding: 5px 12px; border: 1px solid var(--main-blue); border-radius: 20px; cursor: pointer; background: white; }
+        .tab.active { background: var(--main-blue); color: white; }
+        #loginOverlay { position: fixed; inset: 0; background: var(--main-blue); display: flex; justify-content: center; align-items: center; z-index: 100; }
+    </style>
+</head>
+<body>
+
+<div id="loginOverlay">
+    <div style="background:white; padding:30px; border-radius:20px; text-align:center;">
+        <h2>🦌 進入白鹿戳戳樂</h2>
+        <input type="text" id="username" placeholder="輸入名字" style="padding:10px; border:1px solid #ddd; border-radius:5px;"><br><br>
+        <button onclick="login()" style="background:var(--main-blue); color:white; border:none; padding:10px 20px; border-radius:20px; cursor:pointer;">開始遊戲</button>
+    </div>
+</div>
+
+<header><h1>🦌 白鹿·10盒珍藏版 🦌</h1></header>
+
+<div class="user-card">
+    <div>玩家：<b id="uName">-</b> | 剩餘：<span class="draw-count" id="uDraws">0</span> 抽</div>
+    <div id="timer" style="font-size:0.8rem; color:#999;"></div>
+</div>
+
+<div class="box-nav" id="boxNav"></div>
+<div class="box-grid" id="board"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDVRZLXRd7e3LwdeAbmGFoxIutVpfqBhR8",
+        authDomain: "bailu-poke.firebaseapp.com",
+        databaseURL: "https://bailu-poke-default-rtdb.firebaseio.com",
+        projectId: "bailu-poke",
+        storageBucket: "bailu-poke.firebasestorage.app",
+        messagingSenderId: "391559972694",
+        appId: "1:391559972694:web:d5e3961d5df62b4f3e38f7",
+        measurementId: "G-8TD2PVQ31D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    let user = null;
+    let currentBox = 0;
+    const NUM_BOXES = 10;
+
+    window.login = async () => {
+        const name = document.getElementById('username').value.trim();
+        if (!name) return;
+        user = name;
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('uName').innerText = user;
+
+        // 初始化/讀取個人資料 (剩餘次數存 localStorage 即可，獎池同步雲端)
+        initUser();
+        listenToBoxes();
+    };
+
+    function initUser() {
+        let saved = JSON.parse(localStorage.getItem(`user_${user}`));
+        if (!saved) {
+            saved = { draws: 4, lastRefill: Date.now() };
+        }
+        updateUser(saved);
+        setInterval(() => checkRefill(), 1000);
+    }
+
+    function checkRefill() {
+        let saved = JSON.parse(localStorage.getItem(`user_${user}`));
+        const now = Date.now();
+        const diff = now - saved.lastRefill;
+        if (diff >= 3600000) { // 1小時補1抽
+            const earned = Math.floor(diff / 3600000);
+            saved.draws += earned;
+            saved.lastRefill += earned * 3600000;
+            updateUser(saved);
+        }
+        // 更新倒數文字
+        const next = saved.lastRefill + 3600000;
+        const rem = next - now;
+        document.getElementById('timer').innerText = `下一抽恢復：${Math.floor(rem/60000)}分${Math.floor((rem%60000)/1000)}秒`;
+    }
+
+    function updateUser(data) {
+        localStorage.setItem(`user_${user}`, JSON.stringify(data));
+        document.getElementById('uDraws').innerText = data.draws;
+    }
+
+    // 監聽雲端獎池 (10盒)
+    function listenToBoxes() {
+        onValue(ref(db, 'prizes'), (snapshot) => {
+            const allBoxes = snapshot.val();
+            if (!allBoxes) {
+                // 如果資料庫是空的，初始化獎池
+                initCloudPrizes();
+            } else {
+                renderBoard(allBoxes);
+            }
+        });
+    }
+
+    function initCloudPrizes() {
+        const prizePool = ["簽名小卡", "寧安如夢劇照", "應援手幅", "限定海報", "銘謝惠顧", "白鹿同款糖"];
+        const initialPrizes = {};
+        for(let i=0; i<NUM_BOXES; i++) {
+            initialPrizes[i] = Array.from({length:16}, () => ({
+                p: prizePool[Math.floor(Math.random()*prizePool.length)],
+                is: false
+            }));
+        }
+        set(ref(db, 'prizes'), initialPrizes);
+    }
+
+    function renderBoard(allBoxes) {
+        const nav = document.getElementById('boxNav');
+        nav.innerHTML = '';
+        for(let i=0; i<NUM_BOXES; i++) {
+            const b = document.createElement('button');
+            b.innerText = i+1;
+            b.className = `tab ${currentBox === i ? 'active' : ''}`;
+            b.onclick = () => { currentBox = i; renderBoard(allBoxes); };
+            nav.appendChild(b);
+        }
+
+        const board = document.getElementById('board');
+        board.innerHTML = '';
+        allBoxes[currentBox].forEach((item, idx) => {
+            const div = document.createElement('div');
+            div.className = `slot ${item.is ? 'poked' : ''}`;
+            div.innerHTML = `<span class="num">${idx+1}</span><span class="prize-text">${item.p}</span>`;
+            div.onclick = () => poke(idx, item);
+            board.appendChild(div);
+        });
+    }
+
+    async function poke(idx, item) {
+        if (item.is) return;
+        let saved = JSON.parse(localStorage.getItem(`user_${user}`));
+        if (saved.draws <= 0) return alert("沒抽數了！");
+
+        saved.draws--;
+        updateUser(saved);
+        
+        // 更新雲端狀態
+        update(ref(db, `prizes/${currentBox}/${idx}`), { is: true, winner: user });
+    }
+</script>
+</body>
+</html>
