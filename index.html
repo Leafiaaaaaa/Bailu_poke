@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>白鹿應援：幸運戳戳 & 集卡</title>
+    <title>鹿茸遊戲中心</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#AFDFE4">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -67,7 +67,7 @@
 
 <div id="loginOverlay">
     <div class="login-box">
-        <h2 style="color:var(--dark-blue)">🦌 鹿茸應援中心</h2>
+        <h2 style="color:var(--dark-blue)">🦌鹿茸遊戲中心</h2>
         <input type="text" id="username" placeholder="暱稱 (帳號)">
         <input type="password" id="password" placeholder="密碼">
         <button onclick="login()">進入 / 註冊</button>
@@ -111,19 +111,19 @@
 </div>
 
 <div id="recordPage" class="page">
-    <h1>📜 應援圖鑑大表</h1>
+    <h1>📜戰利品清單</h1>
     
-    <h3 style="border-left:4px solid var(--main-blue); padding-left:10px; width:100%; max-width:400px;">✨ 小卡圖鑑</h3>
+    <h3 style="border-left:4px solid var(--main-blue); padding-left:10px; width:100%; max-width:400px;">✨小卡圖鑑</h3>
     <table class="collection-table" id="cardTable"></table>
 
-    <h3 style="border-left:4px solid var(--main-blue); padding-left:10px; width:100%; max-width:400px; margin-top:10px;">🎁 周邊大表</h3>
+    <h3 style="border-left:4px solid var(--main-blue); padding-left:10px; width:100%; max-width:400px; margin-top:10px;">🎁戳戳樂圖鑑</h3>
     <table class="collection-table" id="prizeTable"></table>
 </div>
 
 <div class="nav-bar">
-    <div class="nav-item active" onclick="switchPage('gamePage', this)">🎯 戳戳樂</div>
-    <div class="nav-item" onclick="switchPage('gachaPage', this)">✨ 抽卡</div>
-    <div class="nav-item" onclick="switchPage('recordPage', this)">📜 圖鑑</div>
+    <div class="nav-item active" onclick="switchPage('gamePage', this)">🎯戳戳樂</div>
+    <div class="nav-item" onclick="switchPage('gachaPage', this)">✨抽卡</div>
+    <div class="nav-item" onclick="switchPage('recordPage', this)">📜圖鑑</div>
 </div>
 
 <script type="module">
@@ -203,8 +203,8 @@
         document.getElementById('gDraws').innerText = userData.gDraws ?? 0;
         const pRem = Math.max(0, (userData.lastRefill + 3600000) - now);
         const gRem = Math.max(0, (userData.lastGRefill + 3600000) - now);
-        document.getElementById('timer').innerText = userData.draws >= 10 ? "✨ 滿格" : `補給：${Math.floor(pRem/60000)}分${Math.floor((pRem%60000)/1000)}秒`;
-        document.getElementById('gTimer').innerText = userData.gDraws >= 20 ? "✨ 滿格" : `補給：${Math.floor(gRem/60000)}分${Math.floor((gRem%60000)/1000)}秒`;
+        document.getElementById('timer').innerText = userData.draws >= 10 ? "✨滿格" : `補給：${Math.floor(pRem/60000)}分${Math.floor((pRem%60000)/1000)}秒`;
+        document.getElementById('gTimer').innerText = userData.gDraws >= 20 ? "✨滿格" : `補給：${Math.floor(gRem/60000)}分${Math.floor((gRem%60000)/1000)}秒`;
     }
 
     // 抽卡邏輯 (1/5/10連)
@@ -301,3 +301,4 @@
 </script>
 </body>
 </html>
+
