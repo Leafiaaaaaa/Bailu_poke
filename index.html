@@ -22,7 +22,7 @@
         .login-box { background: white; padding: 30px; border-radius: 25px; text-align: center; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .login-box input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--main-blue); border-radius: 12px; outline: none; }
         .login-box button { background: var(--main-blue); color: white; border: none; padding: 12px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .instruction-card { background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 20px; width: 100%; font-size: 0.85rem; border: 1.5px dashed var(--dark-blue); color: #555; }
+        .instruction-card { background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 20px; width: 100%; font-size: 0.85rem; border: 1.5px dashed var(--dark-blue); color: #555; line-height: 1.6; }
 
         /* 2. 狀態顯示 */
         .user-card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 95%; max-width: 400px; text-align: center; margin-bottom: 15px; border: 1px solid var(--main-blue); }
@@ -30,12 +30,13 @@
         
         /* 盒子導覽 (1行5盒) */
         .box-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 360px; margin-bottom: 15px; }
-        .tab { padding: 8px 0; border: 1.5px solid var(--main-blue); border-radius: 10px; cursor: pointer; background: white; font-size: 0.85rem; font-weight: bold; color: var(--nav-text); text-align: center; }
+        .tab { padding: 8px 0; border: 1.5px solid var(--main-blue); border-radius: 10px; cursor: pointer; background: white; font-size: 0.85rem; font-weight: bold; color: var(--nav-text); transition: 0.2s; }
         .tab.active { background: var(--main-blue); color: white; }
 
+        /* 戳戳樂格子 */
         .box-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: white; padding: 15px; border-radius: 20px; border: 2px solid var(--main-blue); width: 100%; max-width: 360px; }
         .slot { aspect-ratio: 1/1; background: var(--main-blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1); position: relative; }
-        .slot.poked { background: #E8F7F9; color: var(--dark-blue); cursor: not-allowed; border: 1px solid #ddd; box-shadow: none; font-size: 0.65rem; text-align: center; }
+        .slot.poked { background: #E8F7F9; color: var(--dark-blue); cursor: not-allowed; border: 1px solid #ddd; box-shadow: none; font-size: 0.65rem; text-align: center; padding: 4px; }
 
         /* 3. 抽卡介面專屬樣式 */
         .pack-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; padding: 10px 0; }
@@ -46,13 +47,15 @@
             color: white; font-weight: bold; font-size: 1.2rem;
             box-shadow: 0 15px 30px rgba(175, 223, 228, 0.4);
             margin-bottom: 30px; transform: rotate(-2deg);
-            transition: 0.3s;
+            transition: 0.3s; cursor: pointer;
         }
+        .card-pack:active { transform: rotate(-2deg) scale(0.95); }
         .card-pack::before { content: "PACK"; position: absolute; top: 10px; font-size: 0.7rem; letter-spacing: 2px; opacity: 0.8; }
         .card-pack::after { content: ""; position: absolute; bottom: 0; width: 100%; height: 30px; background: rgba(0,0,0,0.1); border-radius: 0 0 10px 10px; }
 
         .gacha-controls { display: grid; grid-template-columns: 1fr; gap: 10px; width: 85%; max-width: 300px; }
-        .gacha-btn { padding: 14px; border: none; border-radius: 30px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .gacha-btn { padding: 14px; border: none; border-radius: 30px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s; }
+        .gacha-btn:active { transform: scale(0.95); }
 
         /* 4. 動態彈射特效層 */
         #resultOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; overflow-y: auto; padding: 40px 10px; }
@@ -105,7 +108,7 @@
             <ul style="margin:0; padding-left:1.2rem;">
                 <li><b>體力：</b>戳戳(上限10) / 抽卡(上限20)，每小時自動恢復1點。</li>
                 <li><b>同步：</b>進度即時雲端儲存，帳號密碼請牢記。</li>
-                <li><b>視覺：</b>戳中格子或開啟卡包，獎品都會直接彈出！</li>
+                <li><b>玩法：</b>點擊格子或按鈕，收藏品將直接彈出！</li>
             </ul>
         </div>
     </div>
@@ -133,7 +136,7 @@
     </div>
     
     <div class="pack-container">
-        <div class="card-pack" id="cardPack">白鹿劇照</div>
+        <div class="card-pack" id="cardPack" onclick="drawGacha(1)">白鹿劇照<br><span style="font-size:0.8rem; opacity:0.8">點擊單抽</span></div>
         <div class="gacha-controls">
             <button class="gacha-btn" style="background:var(--main-blue);" onclick="drawGacha(1)">單抽 (1抽)</button>
             <button class="gacha-btn" style="background:#a29bfe;" onclick="drawGacha(5)">五連抽 (5抽)</button>
@@ -178,8 +181,7 @@
     const CARD_POOL = [
         { n: "姜雪寧·寧安如夢", r: "SSR" }, { n: "黎蘇蘇·長月燼明", r: "SSR" },
         { n: "鄭書意·以愛為營", r: "SR" }, { n: "崔時宜·周生如故", r: "SR" },
-        { n: "林少春·玉樓春", r: "R" }, { n: "白鹿·元氣日常", r: "R" },
-        { n: "白鹿·鹿角造型", r: "R" }, { n: "白鹿·紅毯瞬間", r: "R" }
+        { n: "白鹿·元氣日常", r: "R" }, { n: "白鹿·鹿角造型", r: "R" }
     ];
 
     const app = initializeApp(firebaseConfig);
@@ -191,17 +193,15 @@
         const stage = document.getElementById('resultStage');
         stage.innerHTML = '';
         
-        // 獲取源頭 (卡包或格子) 的座標
         const rect = sourceEl.getBoundingClientRect();
         const startX = (rect.left + rect.width / 2) - (window.innerWidth / 2);
         const startY = (rect.top + rect.height / 2) - (window.innerHeight / 2);
 
         items.forEach((item, i) => {
             const card = document.createElement('div');
-            card.className = `v-card ${item.rarity}`;
+            card.className = `v-card ${item.rarityClass}`;
             card.style.setProperty('--start-x', `${startX}px`);
             card.style.setProperty('--start-y', `${startY}px`);
-            // 連抽時一張接一張飛出
             card.style.animationDelay = `${i * 0.15}s`;
             
             card.innerHTML = `
@@ -215,7 +215,7 @@
         document.getElementById('resultOverlay').style.display = 'flex';
     }
 
-    // --- 核心邏輯 ---
+    // --- 遊戲邏輯 ---
     window.login = async () => {
         const name = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value.trim();
@@ -261,7 +261,7 @@
             let rand = Math.random()*100, rarity = rand < 5 ? "SSR" : (rand < 25 ? "SR" : "R");
             let card = CARD_POOL.filter(c => c.r === rarity)[Math.floor(Math.random()*CARD_POOL.filter(c => c.r === rarity).length)];
             userData.myCards.push({ n: card.n, r: card.r });
-            results.push({ name: card.n, type: `劇照 [${rarity}]`, rarity: rarity === 'SSR' ? 'legend' : (rarity === 'SR' ? 'premium' : '') });
+            results.push({ name: card.n, type: `劇照 [${rarity}]`, rarityClass: rarity === 'SSR' ? 'legend' : (rarity === 'SR' ? 'premium' : '') });
         }
         await update(ref(db, `users/${user}`), userData);
         // 強制鎖定卡包為發射源
@@ -272,11 +272,24 @@
         if(item.is || userData.draws <= 0) return;
         userData.draws--;
         const prizeInfo = PRIZE_SETTING.find(p => p.n === item.p);
+        let rarityText = "[R]";
+        let rarityClass = "";
+        if(prizeInfo) {
+            rarityClass = prizeInfo.r;
+            if(prizeInfo.r === 'legend') rarityText = "[SSR]";
+            else if(prizeInfo.r === 'premium') rarityText = "[SR]";
+        }
+
         userData.myPrizes.push({ p: item.p, b: currentBox+1 });
         await update(ref(db, `users/${user}`), userData);
         update(ref(db, `prizes/${currentBox}/${idx}`), { is: true, winner: user });
-        // 從點擊的格子發射
-        triggerPopEffect([{ name: item.p, type: "戳戳獎勵", rarity: prizeInfo?.r || "" }], e.currentTarget);
+        
+        // 從點擊的格子發射，並統一文字格式
+        triggerPopEffect([{ 
+            name: item.p, 
+            type: `周邊獎勵 ${rarityText}`, 
+            rarityClass: rarityClass 
+        }], e.currentTarget);
     }
 
     function renderBoard(allBoxes) {
@@ -290,7 +303,7 @@
             board.appendChild(div);
         });
         const nav = document.getElementById('boxNav'); nav.innerHTML = '';
-        for(let i=0; i<NUM_BOXES; i++){
+        for(let i=0; i<10; i++){
             const b = document.createElement('button');
             b.innerText = `盒 ${i+1}`; b.className = `tab ${currentBox === i ? 'active' : ''}`;
             b.onclick = () => { currentBox = i; renderBoard(allBoxes); };
@@ -300,7 +313,7 @@
 
     function initCloudPrizes() {
         const init = {};
-        for(let i=0; i<NUM_BOXES; i++){
+        for(let i=0; i<10; i++){
             init[i] = Array.from({length:16}, () => {
                 let rand = Math.random()*100, pName = "";
                 for(const p of PRIZE_SETTING) { if(rand < p.w) { pName = p.n; break; } rand -= p.w; }
