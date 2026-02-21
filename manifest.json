@@ -1,13 +1,18 @@
 {
-  "name": "白鹿周邊戳戳樂",
-  "short_name": "Bailu Poke",
+  "name": "白鹿·應援戳戳樂",
+  "short_name": "白鹿戳戳",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#F5FAFB",
   "theme_color": "#AFDFE4",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/1041/1041916.png",
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
